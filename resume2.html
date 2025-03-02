@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background-color: #252525;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1, h2 {
+            color: #ff6f61;
+            margin-bottom: 10px;
+        }
+        .contact-info, .about-me, .experience, .education, .skills {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            border-bottom: 1px solid #ff6f61;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        p, li {
+            line-height: 1.6;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        @media (max-width: 500px) {
+            .container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>John Doe</h1>
+        <div class="contact-info">
+            <h2 class="section-title">Contact Information</h2>
+            <p>Email: johndoe@example.com</p>
+            <p>Phone: (123) 456-7890</p>
+            <p>LinkedIn: linkedin.com/in/johndoe</p>
+        </div>
+        <div class="about-me">
+            <h2 class="section-title">About Me</h2>
+            <p>I am a software engineer with 5 years of experience specializing in full-stack web development. I have a passion for crafting efficient, scalable, and user-friendly applications. My expertise spans across the full spectrum of modern web technologies.</p>
+        </div>
+        <div class="experience">
+            <h2 class="section-title">Experience</h2>
+            <ul>
+                <li>
+                    <strong>Senior Software Engineer</strong> at Tech Solutions (2020-Present)
+                    <ul>
+                        <li>Led a team of developers to build high-performance web applications.</li>
+                        <li>Developed and maintained scalable backend services using Node.js and Express.</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Software Engineer</strong> at Web Innovators (2018-2020)
+                    <ul>
+                        <li>Implemented responsive UI components using React.js.</li>
+                        <li>Collaborated closely with product and design teams to deliver seamless user experiences.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="education">
+            <h2 class="section-title">Education</h2>
+            <ul>
+                <li>
+                    <strong>Bachelor of Science in Computer Science</strong>, State University (2014-2018)
+                    <ul>
+                        <li>GPA: 3.8/4.0</li>
+                        <li>Activities: Member of the Coding Club, Organizer of the Hackathon 2017</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="skills">
+            <h2 class="section-title">Skills</h2>
+            <ul>
+                <li>JavaScript, HTML, CSS</li>
+                <li>React.js, Node.js, Express</li>
+                <li>SQL, NoSQL Databases</li>
+                <li>Responsive Design</li>
+                <li>Agile Methodologies</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

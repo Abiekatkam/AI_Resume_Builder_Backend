@@ -1,10 +1,7 @@
 import express from 'express';
-import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import userRoute from './routes/user.router.js';
-import emailRoute from './routes/email.router.js';
-import googleRoute from './routes/google.auth.Route.js';
-import passport from './auth.utils/passport.js';
+import openAiRoute from './routes/openAi.router.js'
 
 import dotenv from 'dotenv';
 
@@ -27,13 +24,9 @@ app.options('*', cors({
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(express.static('public'));
-app.use(cookieParser());
 
-// Initialize passport
-app.use(passport.initialize());
-
-app.use('/api/v1', googleRoute);
 app.use('/api/v1/users', userRoute);
-app.use('/api/v1/email', emailRoute);
+app.use('/api/v1/openAi', openAiRoute);
+
 
 export default app;

@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, fullName, clerk_id, phoneNumber, username } = req.body;
+  const { email, fullName, clerk_id, phoneNumber, username, avatarUrl } = req.body;
 
   if ([email, username].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "email and username fields are required");
@@ -25,6 +25,8 @@ const registerUser = asyncHandler(async (req, res) => {
         clerk_id,
         phoneNumber,
         username: username.toLowerCase(),
+        avatarUrl,
+        updatedAt: new Date(),
       },
     });
 
@@ -41,6 +43,8 @@ const registerUser = asyncHandler(async (req, res) => {
       fullName,
       clerk_id,
       phoneNumber,
+      avatarUrl,
+      createdAt: new Date()
     },
   });
 

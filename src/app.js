@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import userRoute from './routes/user.router.js';
 import openAiRoute from './routes/openAi.router.js'
+import feedback from './routes/feedback.router.js'
 
 import dotenv from 'dotenv';
 
@@ -27,6 +28,7 @@ app.use(express.static('public'));
 
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/openAi', openAiRoute);
+app.use('/api/v1/feedback', feedback);
 
 
 export default app;

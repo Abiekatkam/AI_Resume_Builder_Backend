@@ -4,15 +4,15 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, fullName, clerk_id, phoneNumber, username, avatarUrl } = req.body;
+  const { email, fullName, clerk_id, phoneNumber, avatarUrl } = req.body;
 
-  if ([email, username].some((field) => field?.trim() === "")) {
-    throw new ApiError(400, "email and username fields are required");
+  if ([email].some((field) => field?.trim() === "")) {
+    throw new ApiError(400, "email fields are required");
   }
 
   const existingUser = await prisma.user.findFirst({
     where: {
-      OR: [{ username }, { email }],
+      OR: [{ clerk_id }, { email }],
     },
   });
 
@@ -24,7 +24,6 @@ const registerUser = asyncHandler(async (req, res) => {
         fullName,
         clerk_id,
         phoneNumber,
-        username: username.toLowerCase(),
         avatarUrl,
         updatedAt: new Date(),
       },
@@ -38,7 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // Create new user if not found
   const user = await prisma.user.create({
     data: {
-      username: username.toLowerCase(),
+      avatarUrl,
       email,
       fullName,
       clerk_id,
@@ -53,7 +52,6 @@ const registerUser = asyncHandler(async (req, res) => {
     select: {
       id: true,
       email: true,
-      username: true,
     },
   });
 

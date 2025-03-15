@@ -28,3 +28,9 @@ model FeedBack {
   content       String
   createdAt     DateTime  @default(now())
 }
+
+model Template {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  clerk_id      String 
+  htmlJson      String
+}

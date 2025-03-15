@@ -8,15 +8,87 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  clerk_id      String?  @unique
-  username      String?  @unique
-  email         String   @unique
-  fullName      String?
-  phoneNumber   String?
-  avatarUrl     String?
-  createdAt     DateTime?
-  updatedAt     DateTime?
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  clerk_id    String?  @unique
+  email       String   @unique
+  fullName    String?
+  phoneNumber String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  resumes Resume[]
+}
+
+model Resume {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  user              User     @relation(fields: [userId], references: [id])
+  templateName      String   @unique
+  templateId        String   @unique
+  fullName          String
+  email             String
+  phoneNumber       String
+  workingProfession String
+  careerSummary     String
+  skills            String[]
+  colors            String?
+
+  experience     Experience[]
+  education      Education[]
+  projects       Project[]
+  certifications Certification[]
+  conversation   Conversation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Experience {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  resumeId    String @db.ObjectId
+  companyName String
+  jobTitle    String
+  duration    String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Education {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  resumeId      String @db.ObjectId
+  boards        String
+  degree        String
+  graduatedYear String
+  resume        Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Certification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  resumeId    String   @db.ObjectId
+  name        String
+  issuer      String
+  dateIssued  DateTime
+  deployedUrl String?
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  resumeId    String  @db.ObjectId
+  title       String
+  description String
+  link        String?
+  techStack   String
+  resume      Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  resumeId  String   @db.ObjectId
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  role      String
+  message   String
+  timestamp DateTime @default(now())
 }
 
 model FeedBack {
@@ -34,3 +106,5 @@ model Template {
   clerk_id      String 
   htmlJson      String
 }
+  
+

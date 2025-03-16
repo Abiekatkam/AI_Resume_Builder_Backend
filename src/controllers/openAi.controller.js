@@ -20,96 +20,157 @@ const encodeImage = async (imagePath) => {
   }
 };
 
-const generatePrompt = (isDark, withTemplate) => {
-  const uniqueId = `resume-${Date.now()}`; // Generate a unique identifier
-
-  return `
-      You are an expert in generating professional, responsive HTML resumes with inline CSS. 
-      Generate a clean, modern, and visually appealing resume using only HTML with inline styles.
-      
-      - The resume should have a **${
-        isDark ? "dark" : "light"
-      }** theme with a ${
-    isDark ? "dark" : "light"
-  } background and contrasting text.
-      - Use **semantic HTML** (e.g., <header>, <section>, <footer>) and organize content properly.
-      - Apply **inline CSS** for styling, including modern fonts, soft shadows, subtle accent colors, and responsive design.
-      - The layout should be **mobile-friendly**, adapting for different screen sizes without external CSS or media queries.
-      - Include sections for:
-        - **Name & Contact Information**
-        - **About Me**
-        - **Experience**
-        - **Education**
-        - **Skills**
-        ${
-          withTemplate
-            ? "- **Projects (Include GitHub links if provided)**"
-            : ""
-        }
-      
-      Important Requirements:
-      - **All class names and IDs must be prefixed with '${uniqueId}-'** to ensure uniqueness.
-      - The resume should not affect or override other components when embedded in a page.
-      - The entire resume should be wrapped in a parent container with the ID **'${uniqueId}-container'**.
+const generatePrompt = (resumeData, userInput) => {
+  const uniqueId = `resume-${Date.now()}`;
+  const bgColor = resumeData.colors || "#ffffff";
+  const headerFooterTextColor = resumeData.colors ? "#ffffff" : "#000000";
   
-      Ensure the HTML output is **well-structured and readable**, following accessibility best practices.
-    `;
+  return `
+    You are an expert in generating professional, responsive HTML resumes with inline CSS. 
+    Generate a clean, modern, and visually appealing resume using only HTML with inline styles (<header>, <section>, <footer>). 
+
+    - Use background color **${bgColor}** for header and footer.
+    - Set text color for **header and footer** to **${headerFooterTextColor}**.
+    - Set text color for **sections** to **black** (#000000).
+    - Include:
+      - **Name:** ${resumeData.fullName || ""}
+      - **Email:** ${resumeData.email || ""}
+      - **Phone:** ${resumeData.phoneNumber || ""}
+      - **Profession:** ${resumeData.workingProfession || ""}
+      - **Summary:** ${resumeData.careerSummary || ""}
+      - **Skills:** ${resumeData.skills?.join(", ") || ""}
+      ${
+        resumeData.experience?.length
+          ? `- **Experience:** ` +
+            resumeData.experience
+              .map(
+                (exp) =>
+                  `${exp.jobTitle} at ${exp.companyName} (${exp.duration})`
+              )
+              .join("; ")
+          : ""
+      }
+      ${
+        resumeData.education?.length
+          ? `- **Education:** ` +
+            resumeData.education
+              .map(
+                (edu) => `${edu.degree} at ${edu.boards} (${edu.graduatedYear})`
+              )
+              .join("; ")
+          : ""
+      }
+      ${
+        resumeData.projects?.length
+          ? `- **Projects:** ` +
+            resumeData.projects
+              .map(
+                (proj) =>
+                  `${proj.title} (${proj.link || "N/A"}) [${
+                    proj.techStack || "N/A"
+                  }]`
+              )
+              .join("; ")
+          : ""
+      }
+      ${
+        resumeData.certifications?.length
+          ? `- **Certifications:** ` +
+            resumeData.certifications
+              .map(
+                (cert) =>
+                  `${cert.name} by ${cert.issuer} (${new Date(
+                    cert.dateIssued
+                  ).toDateString()})`
+              )
+              .join("; ")
+          : ""
+      }
+
+    - Prefix all IDs and classes with '${uniqueId}-' for uniqueness.
+    - Wrap the entire resume in a container with ID '${uniqueId}-container'.
+
+    User Command: ${userInput}
+
+    Ensure the HTML output is **well-structured and readable**, following accessibility best practices.
+  `;
 };
 
-const generateResume = async (req, res, next, withTemplate) => {
-  // add next parameter
-  const { userInput, IsDark } = req.body;
-  if (!userInput) return next(new ApiError(400, "userInput is required")); // use return next
 
-  const themePrompt = generatePrompt(IsDark, withTemplate);
-  const schema = withTemplate
-    ? {
-        jobtitle: { type: "string" },
-        aboutme: { type: "string" },
-        experience: { type: "string" },
-        education: { type: "string" },
-        skills: { type: "string" },
-        projects: { type: "string", description: "GitHub links if provided" },
-      }
-    : { html: { type: "string" } };
+const generateResume = async (req, res, next, withTemplate) => {
+  const { resumeId, userInput, assistantResponse, color } = req.body;
+
+  if (!userInput) return next(new ApiError(400, "userInput is required"));
+
+  await prisma.$transaction([
+    prisma.conversation.create({
+      data: { resumeId, role: "user", message: userInput },
+    }),
+    prisma.conversation.create({
+      data: { resumeId, role: "assistant", message: assistantResponse },
+    }),
+  ]);
+
+  if (color) {
+    await prisma.resume.update({
+      where: { id: resumeId },
+      data: {
+        colors: color,
+      },
+    });
+  }
+
+  const resumeData = await prisma.resume.findUnique({
+    where: { id: resumeId },
+    include: {
+      experience: true,
+      education: true,
+      projects: true,
+      certifications: true,
+      conversation: true,
+    },
+  });
+
+  if (!resumeData) {
+    return next(new ApiError(404, "Resume not found"));
+  }
+
+  const prompt = generatePrompt(resumeData, userInput);
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: themePrompt },
+        { role: "system", content: prompt },
         { role: "user", content: userInput },
       ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "resume_schema",
-          schema: {
-            type: "object",
-            properties: schema,
-            additionalProperties: false,
-          },
-        },
-      },
+      max_tokens: 3000, // Lower max tokens to save cost
+      temperature: 0.6, // Balanced creativity and consistency
     });
 
-    await writeFile(
-      "test.html",
-      JSON.parse(completion.choices[0].message.content).html
-    );
+    let htmlResult = completion.choices[0].message.content
+      .replace(/^```html/, "") // Remove starting ```html
+      .replace(/```$/, ""); // Remove ending ```
 
-    const result = JSON.parse(completion.choices[0].message.content);
-    res
+
+    await prisma.resume.update({
+      where: { id: resumeId },
+      data: { jsonHtmlCode: htmlResult },
+    });
+
+    return res
       .status(200)
-      .json(new ApiResponse(200, result, "Resume generated successfully"));
+      .json(new ApiResponse(200, htmlResult, "Resume generated successfully"));
   } catch (error) {
-    return next(new ApiError(500, "Failed to generate HTML resume")); // use return next
+    console.error("Error generating resume:", error);
+    return next(new ApiError(500, "Failed to generate HTML resume"));
   }
 };
 
 const createHtmlTemplate = asyncHandler(async (req, res, next) => {
   await generateResume(req, res, next, false);
 });
+
 const createHtmlWithTemplate = asyncHandler(async (req, res, next) => {
   await generateResume(req, res, next, true);
 });
@@ -197,9 +258,6 @@ const convertImageToHtml = asyncHandler(async (req, res, next) => {
   }
 });
 
-const changeSelectText = asyncHandler(async (req, res)=>{
-
-
-});
+const changeSelectText = asyncHandler(async (req, res) => {});
 
 export { createHtmlTemplate, createHtmlWithTemplate, convertImageToHtml };

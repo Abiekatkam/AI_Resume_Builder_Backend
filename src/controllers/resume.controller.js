@@ -263,7 +263,44 @@ export const updateResume = asyncHandler(async (req, res) => {
 });
 
 // READ BY ID ENPOINT FOR RESUME
-export const getResumeById = asyncHandler(async (req, res) => {});
+export const getResumeById = asyncHandler(async (req, res) => {
+  const { resumeId } = req.params;
+
+  if (!resumeId) {
+    res.status(400).json({ success: false, message: "Resume ID is required" });
+    return;
+  }
+
+  try {
+    const resume = await prisma.resume.findUnique({
+      where: {
+        id: resumeId,
+      },
+      select: {
+        id: true,
+        colors: true,
+        jsonHtmlCode: true,
+      },
+    });
+
+    if (!resume) {
+      res.status(404).json({ success: false, message: "Resume not found" });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: resume,
+    });
+  } catch (error) {
+    console.error("Error fetching resume by ID:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve resume",
+    });
+  }
+});
+
 
 // READ ALL ENPOINT FOR RESUME
 export const getAllResume = asyncHandler(async (req, res) => {
@@ -347,4 +384,37 @@ export const uniqueResumeTemplateName = asyncHandler(async (req, res) => {
   }
 
   return res.status(200).json({ message: "Template name is unique" });
+});
+
+// READ ALL ENDPOINT FOR CONVERSATIONS
+export const getAllResumeConversation = asyncHandler(async (req, res) => {
+  const { resumeId } = req.params;
+
+  if (!resumeId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Resume Id is required" });
+  }
+
+  try {
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        resumeId: resumeId,
+      },
+      orderBy: {
+        timestamp: "asc",
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: conversations,
+    });
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch conversations",
+    });
+  }
 });

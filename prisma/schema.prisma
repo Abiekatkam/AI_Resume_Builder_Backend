@@ -33,6 +33,7 @@ model Resume {
   careerSummary     String
   skills            String[]
   colors            String?
+  jsonHtmlCode      String?
 
   experience     Experience[]
   education      Education[]

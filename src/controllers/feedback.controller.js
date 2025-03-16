@@ -64,7 +64,7 @@ const GetAllFeedbacks = asyncHandler(async (req , res) => {
     orderBy: {
       createdAt: "desc", // Sort by createdAt in descending order
     },
-    take: 20, // Limit to the latest 20 feedbacks
+    take: 18, // Limit to the latest 20 feedbacks
     select: {
       id: true,
       clerk_id: true,
@@ -82,7 +82,7 @@ const GetAllFeedbacks = asyncHandler(async (req , res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, feedbacks, "Latest 20 feedbacks retrieved successfully"));
+    .json(new ApiResponse(200, feedbacks, "Latest 18 feedbacks retrieved successfully"));
 });
 
 
